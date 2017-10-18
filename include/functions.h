@@ -54,9 +54,29 @@ void removeRightOutliers(vector<CChar> &cchar_vec,vector<CChar> &out_cchar_vec,f
 void removeContainChar(vector<CChar> &cchar_vec,float thresh);
 
 //在同一斜率的轴线上搜索字符
-void axesSearch(const Vec4f &line_vec4f,Point &left_point,Point &right_point,Rect &max_cchar_rect,Rect &cplate_rect,vector<CChar> &cchar_vec,vector<CChar> &out_cchar_vec,float thresh,int flag);
+void axesSearch(const Vec4f &line_vec4f,
+                Point &left_point,
+                Point &right_point,
+                Rect &max_cchar_rect,
+                Rect &cplate_rect,
+                vector<CChar> &cchar_vec,
+                vector<CChar> &out_cchar_vec,
+                float thresh,
+                int flag);
 
-void slideWindowSearch(const Mat &in,vector<CChar> &out_cchar_vec,CPlate &cplate,float window_ratio,bool is_chinese,float thresh,int flag);
+void slideWindowSearch(const Mat &in,
+    const Vec4f &line_vec4f,
+    Point &left_point,
+    Point &right_point,
+    const Rect &max_cchar_rect,
+    Rect &cplate_rect,
+    vector<CChar> &out_cchar_vec,
+    float otsu_level,
+    float window_ratio,
+    float thresh,
+    bool is_chinese,
+    int flag);
+
 
 void combineRect(const Mat &in, vector<CChar> &cchar_vec,vector<CChar> &out_cchar_vec,const Vec2i &dest_vec2i,const Rect &max_cchar_rect, float min_thresh, float max_thresh);
 #endif

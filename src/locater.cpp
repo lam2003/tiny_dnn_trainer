@@ -37,7 +37,7 @@ void Locater::mserCharLocated()
 
     Ptr<MSER2> mser;
     mser = MSER2::create(mser_delta, mser_min_area, mser_max_area);
-    mser->detectRegions(formser_mat, mser_blue_contour_vec, mser_blue_rect_vec, mser_yellow_contour_vec, mser_blue_rect_vec);
+    mser->detectRegions(formser_mat, mser_blue_contour_vec, mser_blue_rect_vec, mser_yellow_contour_vec, mser_yellow_rect_vec);
 
     vector<vector<vector<Point> > > contour_vec_vec;
     contour_vec_vec.push_back(mser_blue_contour_vec);
@@ -80,10 +80,10 @@ void Locater::mserCharLocated()
 
         CharIdentifier::getInstance()->classify(cchar_vec);
 
+        notMaxSuppression(cchar_vec, 0.6); //sort by score
+
         vector<CChar> strong_seed_vec;
         strong_seed_vec.reserve(128);
-
-        notMaxSuppression(cchar_vec, 0.6); //sort by score
 
         for (int i = 0; i < cchar_vec.size(); i++)
         {
@@ -93,7 +93,7 @@ void Locater::mserCharLocated()
         }
 
         notMaxSuppression(strong_seed_vec, 0.3); //sort by score
-
+    
         if (display_process)
         {
             for (int i = 0; i < cchar_vec.size(); i++)
@@ -111,17 +111,17 @@ void Locater::mserCharLocated()
         vector<vector<CChar> > cchar_group_vec;
         cchar_group_vec.reserve(128);
 
-        mergeCharToGroup(cchar_vec,cchar_group_vec);
-
+        mergeCharToGroup(strong_seed_vec,cchar_group_vec);
+        
         for(int i = 0; i < cchar_group_vec.size(); i++)
         {
             vector<CChar> rmo_cchar_group; //removed outliers cchar group
             rmo_cchar_group.reserve(128);
-
+           
             removeRightOutliers(cchar_group_vec.at(i),rmo_cchar_group,0.2f,0.5f); //sort by centerx
-
-            removeContainChar(rmo_cchar_group,0.1f); //sort by tlx
-
+           
+           // removeContainChar(rmo_cchar_group,0.1f); //sort by tlx
+           
             
             vector<Point> cchar_center_point_vec;
             cchar_center_point_vec.reserve(128);
@@ -129,12 +129,13 @@ void Locater::mserCharLocated()
             mser_cchar_vec.reserve(128);
             float cchar_otsu_level_sum = 0.f;
             int max_area = 0;
-            Rect cplate_rect;
-            Point cplate_left_point(0,scale_gray_mat.cols);
+            Rect cplate_rect = cchar_group_vec.at(i)[0].getRect();
+            Point cplate_left_point(scale_gray_mat.cols,0);
             Point cplate_right_point(0,0);
             Vec4f cplate_line_vec4f;
             Rect cplate_max_cchar_rect;
 
+          
             for(int j = 0; j < rmo_cchar_group.size(); j++)
             {
                 CChar cchar = rmo_cchar_group[j];
@@ -161,6 +162,7 @@ void Locater::mserCharLocated()
             float cplate_otsu_level = cchar_otsu_level_sum / rmo_cchar_group.size();
             float cplate_max_cchar_rect_ratio = float(cplate_max_cchar_rect.width) / float(cplate_max_cchar_rect.height);
 
+        
             if(cchar_center_point_vec.size() >= 2 && cplate_max_cchar_rect_ratio >= 0.3)
             {
                 fitLine(Mat(cchar_center_point_vec),cplate_line_vec4f,CV_DIST_L2,0,0.01,0.01);
@@ -198,7 +200,7 @@ void Locater::mserCharLocated()
         
         for(int i = 0; i < cplate_vec.size(); i++)
         {
-            CPlate cplate = cplate_vec.at(i);
+            CPlate &cplate = cplate_vec.at(i);
             Vec2i dist_vec2i = cplate.getDistVec2i();
             vector<CChar> mser_cchar_vec = cplate.getCopyOfMserCCharVec();
             Vec4f line_vec4f = cplate.getLineVec4f();
@@ -206,7 +208,8 @@ void Locater::mserCharLocated()
             Point right_point = cplate.getRightPoint();
             Rect max_cchar_rect = cplate.getMaxCCharRect();
             Rect cplate_rect = cplate.getRect();
-
+            float otsu_level = cplate.getOtsuLevel();
+        
             const int LEFT = 0;
             const int RIGHT = 1;
 
@@ -225,8 +228,12 @@ void Locater::mserCharLocated()
                     mser_cchar_vec.push_back(right_axes_cchar_vec[j]);
             }
 
-            combineRect(scale_gray_mat,mser_cchar_vec,mser_cchar_vec,dist_vec2i,max_cchar_rect,0.3f,2.5f);
             
+            combineRect(scale_gray_mat,mser_cchar_vec,mser_cchar_vec,dist_vec2i,max_cchar_rect,0.3f,2.5f);
+           
+            vector<CChar> slide_cchar_vec;
+            slide_cchar_vec.reserve(128);
+
             if(mser_cchar_vec.size() < kPlateMaxCharNum)
             {
                 sort(mser_cchar_vec.begin(),mser_cchar_vec.end(),compareCCharByRectTlX);
@@ -241,14 +248,61 @@ void Locater::mserCharLocated()
                 cchar.setMat(cchar_binary_mat);
      
                 bool is_chinese = CharIdentifier::getInstance()->isChinese(cchar,0.2f);
-        
+           
                 if(!is_chinese)
                 {
-                    
+                    slideWindowSearch(scale_gray_mat, line_vec4f, left_point, right_point,max_cchar_rect, cplate_rect,slide_cchar_vec,otsu_level, 0.4, 0.8,true,LEFT);
+                    for(int j = 0;j < slide_cchar_vec.size();j++)
+                        mser_cchar_vec.push_back(slide_cchar_vec[j]);
+                }
+             
+                if(mser_cchar_vec.size() < kPlateMaxCharNum)
+                {
+                    slideWindowSearch(scale_gray_mat, line_vec4f, left_point, right_point,max_cchar_rect, cplate_rect,slide_cchar_vec,otsu_level, 0.4, 0.8,false,RIGHT);
+                    for(int j = 0;j < slide_cchar_vec.size();j++)
+                        mser_cchar_vec.push_back(slide_cchar_vec[j]);
                 }
                 
             }
+          
+          
 
+            cplate.setRect(cplate_rect);
+            cplate.setLeftPoint(left_point);
+            cplate.setRightPoint(right_point);
+
+            if (display_process)
+                rectangle(scale_rgb_mat,cplate_rect, Scalar(255, 255, 255), 2); // white
+            
+            for(int j = 0; j < left_axes_cchar_vec.size(); j++)
+            {
+                cplate.addMserCChar(left_axes_cchar_vec[j]);
+                if (display_process)
+                    rectangle(scale_rgb_mat, left_axes_cchar_vec[j].getRect(), Scalar(64, 128, 255), 1);
+            }
+            for(int j = 0; j < right_axes_cchar_vec.size(); j++)
+            {
+                cplate.addMserCChar(right_axes_cchar_vec[j]);
+                if (display_process)
+                    rectangle(scale_rgb_mat, right_axes_cchar_vec[j].getRect(), Scalar(255, 128, 64), 1);
+            }
+            for(int j = 0;j < slide_cchar_vec.size();j++)
+            {
+                cplate.addMserCChar(slide_cchar_vec[j]);
+                if (display_process)
+                    rectangle(scale_rgb_mat, slide_cchar_vec[j].getRect(), Scalar(0, 0, 255), 1); //black
+                
+            }
+           
+            
+        }
+        if(display_process)
+        {
+            char img_name[512] = {0};
+            sprintf(img_name,"mserCharLocated_%d.jpg",color_index);
+            imwrite(img_name,scale_rgb_mat);
+            imshow(img_name,scale_rgb_mat);
+            waitKey(0);
         }
     }
 }

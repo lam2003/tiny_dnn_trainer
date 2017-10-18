@@ -53,7 +53,7 @@ void CharIdentifier::classify(vector<CChar> &cchar_vec)
                 result = j;
             }
         }
-
+    
         label.append(kChars[result]);
         cchar.setScore(max_val);
         cchar.setLabel(label);

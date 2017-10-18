@@ -437,7 +437,9 @@ void mergeCharToGroup(const vector<CChar> &cchar_vec, vector<vector<CChar> > &cc
     int group_num;
 
     if (cchar_vec.size() < 0)
-        group_num = partition(cchar_vec, group_label_vec, &isCharsBelongToOneGroup);
+        return;
+
+    group_num = partition(cchar_vec, group_label_vec, &isCharsBelongToOneGroup);
 
     for (int i = 0; i < group_num; i++)
     {
@@ -490,24 +492,30 @@ void removeRightOutliers(vector<CChar> &cchar_vec,vector<CChar> &out_cchar_vec,f
         float slope2 = slope_vec.at(i + 1);
         float slope_diff = abs(slope1 - slope2);
 
+        
         if(slope_diff <= min_thresh)
             inlier_num++;
-
+           
         if(inlier_num >= 2 && slope_diff >= max_thresh)
         {
+            
             outlier_index = i + 2;
             break;
         }
+     
     }
-
+   
     for(int i = 0; i < cchar_vec.size(); i++)
     {
+       
         if(i != outlier_index)
         {
             CChar cchar = cchar_vec.at(i);
             out_cchar_vec.push_back(cchar);
         }
     }
+   
+   
 }
 
 void removeContainChar(vector<CChar> &cchar_vec,float thresh)
@@ -658,12 +666,20 @@ void axesSearch(const Vec4f &line_vec4f,
     }
 }
 
-
-void slideWindowSearch(const Mat &in,vector<CChar> &out_cchar_vec,CPlate &cplate,float window_ratio,bool is_chinese,float thresh,int flag)
+void slideWindowSearch(const Mat &in,
+                       const Vec4f &line_vec4f,
+                       Point &left_point,
+                       Point &right_point,
+                       const Rect &max_cchar_rect,
+                       Rect &cplate_rect,
+                       vector<CChar> &out_cchar_vec,
+                       float otsu_level,
+                       float window_ratio,
+                       float thresh,
+                       bool is_chinese,
+                       int flag)
 {
-    Vec4f line_vec4f = cplate.getLineVec4f();
-    Rect max_cchar_rect = cplate.getMaxCCharRect();
-    Rect cplate_rect = cplate.getRect();
+
     float k = line_vec4f[1] / line_vec4f[0];
     float x = line_vec4f[2];
     float y = line_vec4f[3];
@@ -672,15 +688,15 @@ void slideWindowSearch(const Mat &in,vector<CChar> &out_cchar_vec,CPlate &cplate
     int from_x = 0;
 
     Point from_point;
-
+   
     if(flag == 0)
     {
-        from_point = cplate.getLeftPoint();
+        from_point = left_point;
         from_x = from_point.x - max_cchar_rect.width;
     }
     else if(flag == 1)
     {
-        from_point = cplate.getRightPoint();
+        from_point = right_point;
         from_x = from_point.x + max_cchar_rect.width;
     }
 
@@ -698,25 +714,26 @@ void slideWindowSearch(const Mat &in,vector<CChar> &out_cchar_vec,CPlate &cplate
         {
             temp_x = float(from_x + slide_x);
         }
-
+        
         float temp_y = y + k * (temp_x - x); 
 
         Point slide_point(temp_x,temp_y);
 
+        
 
-        int chinese_height = 1.1 * max_cchar_rect.height;
-        int chinese_width = 1.1 * max_cchar_rect.width;
+        int chinese_height = 1.05 * max_cchar_rect.height;
+        int chinese_width = 1.05 * max_cchar_rect.width;
 
         Rect rect(Point2f(temp_x - chinese_width / 2,temp_y - chinese_height / 2),
                   Point2f(temp_x + chinese_width / 2,temp_y + chinese_height / 2));
+    
         if(rect.tl().x < 0 || rect.tl().y < 0 || rect.br().x > in.cols || rect.br().y > in.rows)
-        {
             continue;
-        }
+         
 
         Mat cchar_mat = in(rect);
         Mat cchar_binary_mat;
-        threshold(cchar_mat,cchar_binary_mat,cplate.getOtsuLevel(),255,CV_THRESH_BINARY);
+        threshold(cchar_mat,cchar_binary_mat,otsu_level,255,CV_THRESH_BINARY);
         cchar_binary_mat = preprocessChar(cchar_binary_mat,kCharSize);
 
         CChar cchar;
@@ -727,9 +744,10 @@ void slideWindowSearch(const Mat &in,vector<CChar> &out_cchar_vec,CPlate &cplate
 
     if(is_chinese)
         CharIdentifier::getInstance()->classifyChinese(slide_cchar_vec);
+
     else
         CharIdentifier::getInstance()->classify(slide_cchar_vec);
-
+     
     float overlap = 0.1;
     notMaxSuppression(slide_cchar_vec,overlap);
 
@@ -741,15 +759,14 @@ void slideWindowSearch(const Mat &in,vector<CChar> &out_cchar_vec,CPlate &cplate
         if(cchar.getScore() > thresh && strcmp(cchar.getLabel().c_str(),"1") != 0)
         {
             cplate_rect |= cchar_rect;
-            cplate.addMserCChar(cchar);
+            out_cchar_vec.push_back(cchar);
             from_point = cchar_center_point;
         }
     }
     if(flag == 0)
-        cplate.setLeftPoint(from_point);
+        left_point = from_point;
     else if(flag == 1)
-        cplate.setRightPoint(from_point);
-    cplate.setRect(cplate_rect);
+        right_point = from_point;
 }
 
 void combineRect(const Mat &in, vector<CChar> &cchar_vec,vector<CChar> &out_cchar_vec,const Vec2i &dest_vec2i,const Rect &max_cchar_rect, float min_thresh, float max_thresh)

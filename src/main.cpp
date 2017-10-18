@@ -1,12 +1,9 @@
-
+#include "pr.h"
 
 int main(int argc,char *argv[])
 {
-  //  ANNTrainer ann_trainer(argv[1],argv[2],atoi(argv[3]));
-  //  ann_trainer.train();
-  //  ann_trainer.test();
-  //  ANNChGrayTrainer ann_ch_gray_trainer(argv[1],argv[2]);
-  //  ann_ch_gray_trainer.train();
-  //  ann_ch_gray_trainer.test();
+    Mat in = imread(argv[1]);
+    Locater locater(in,true);
+    locater.mserCharLocated();
     return 0;
 }
