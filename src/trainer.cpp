@@ -3,10 +3,6 @@
 Trainer::Trainer() {}
 Trainer::~Trainer(){};
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*ANNTrainer*/
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
 ANNTrainer::ANNTrainer(const char *sample_path, const char *xml_path, int type)
 {
     this->sample_path = sample_path;
@@ -83,7 +79,7 @@ Ptr<TrainData> ANNTrainer::preprocessTrainData(int min_input_num)
         for (int j = 0; j < file_path_vec.size(); j++)
         {
             Mat input_mat = imread(file_path_vec[j].c_str(), CV_8UC1);
-            
+
             input_mat_vec.push_back(input_mat);
         }
 
@@ -155,13 +151,13 @@ void ANNTrainer::train()
     ann_ptr->setLayerSizes(layers);
     ann_ptr->setActivationFunction(ANN_MLP::SIGMOID_SYM, 1, 1);
     ann_ptr->setTrainMethod(ANN_MLP::BACKPROP);
-    if(type == 1)
+    if (type == 0)
+    {
+        ann_ptr->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER + TermCriteria::EPS, 1000, 0.0001));
+    }
+    else if (type == 1)
     {
         ann_ptr->setTermCriteria(cvTermCriteria(CV_TERMCRIT_ITER, 30000, 0.0001));
-    }
-    else if(type == 0)
-    { 
-        ann_ptr->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS, 1000,0));
     }
     ann_ptr->setBackpropWeightScale(0.1);
     ann_ptr->setBackpropMomentumScale(0.1);
@@ -269,7 +265,7 @@ void ANNTrainer::test()
             }
             else
             {
-                printf("[%d][%d]",i,result);
+                printf("[%d][%d]", i, result);
                 if (type == 1)
                 {
                     result += kCharsNumber;
@@ -291,9 +287,6 @@ void ANNTrainer::test()
     printf("-------------------------------------------------------\n");
 }
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*ANNChGrayTrainer*/
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 ANNChGrayTrainer::ANNChGrayTrainer(const char *sample_path, const char *xml_path)
 {
     this->sample_path = sample_path;
@@ -354,7 +347,7 @@ Mat ANNChGrayTrainer::getSyntheticMat(const Mat &in)
     int rand_type = rand() % 3;
     int border_color = getBorderColor(in);
 
-    Mat out = in.clone();
+    Mat out;
     float rand_num = -5.f;
     float rand_array[100];
     for (int i = 0; i < 100; i++)
@@ -409,31 +402,31 @@ Ptr<TrainData> ANNChGrayTrainer::preprocessTrainData(int min_input_num)
 
         fprintf(stdout, "----------------------------------------\n");
         fprintf(stdout, "loading char:%s\n", dir_path.c_str());
-  
+
         for (int j = 0; j < file_path_vec.size(); j++)
         {
             Mat input_mat = imread(file_path_vec[j].c_str(), CV_8UC1);
-      
+
             input_mat_vec.push_back(input_mat);
         }
-  
+
         for (int j = 0; j < min_input_num - input_num; j++)
         {
             int rand_num = rand() % (j + input_num);
-            Mat input_mat = input_mat_vec.at(rand_num); 
-       
+            Mat input_mat = input_mat_vec.at(rand_num);
+            resize(input_mat, input_mat, Size(KANNChGrayWidth,kANNChGrayHeight), 0, 0, INTER_LINEAR);
             Mat synthetic_mat = getSyntheticMat(input_mat);
-           
+
             char output_image_name[512] = {0};
             sprintf(output_image_name, "./res/ANNChGrayTrainer/synthetic_mat/%s-%d-synthetic_mat.jpg", dir_name, j);
             imwrite(output_image_name, synthetic_mat);
-           
+
             input_mat_vec.push_back(synthetic_mat);
         }
-       
+
         fprintf(stdout, "image count:%d\n", input_mat_vec.size());
         for (int j = 0; j < input_mat_vec.size(); j++)
-        { 
+        {
             Mat feature_mat = charFeaturesForANNChGrayTrain(input_mat_vec.at(j));
             label_vec.push_back(i);
             sample_mat.push_back(feature_mat);
@@ -502,7 +495,7 @@ void ANNChGrayTrainer::test()
             }
             else
             {
-                printf("[%d][%d]",i,result);
+                printf("[%d][%d]", i, result);
                 result += kCharsNumber;
                 printf("[error]:correct result:%s\t result:%s\n", dir_name, kChars[result]);
             }

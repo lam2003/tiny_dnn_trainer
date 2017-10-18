@@ -1,3 +1,6 @@
+#ifndef TRAINER_H
+#define TRAINER_H
+
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include "functions.h"
@@ -54,3 +57,5 @@ private:
     const char *sample_path;
     const char *xml_path;
 };
+
+#endif 

@@ -72,9 +72,8 @@ Mat getProjectedMat(const Mat &in,int data_size)
 Mat charFeaturesForANNChGrayTrain(const Mat &in)
 {
    
-    Mat char_mat;
-    resize(in, char_mat, Size(KANNChGrayWidth,kANNChGrayHeight), 0, 0, INTER_LINEAR);
-    
+    Mat char_mat = in.clone();
+   
     float scale = 1.f / 255.f;
     char_mat.convertTo(char_mat,CV_32FC1,scale,0);
     char_mat -= mean(char_mat);
@@ -86,6 +85,6 @@ Mat charFeaturesForANNChGrayTrain(const Mat &in)
     Mat projected_mat = getProjectedMat(binary_mat,kANNChGrayDataSize);
     
     Mat feature_mat;
-    hconcat(char_mat.reshape(1,1),projected_mat.reshape(1,1),feature_mat); 
+    hconcat(char_mat,projected_mat.reshape(1,1),feature_mat); 
     return feature_mat;
 }
