@@ -108,14 +108,15 @@ void CharIdentifier::classifyChinese(vector<CChar> &cchar_vec)
 
 bool CharIdentifier::isChinese(CChar &cchar,float thresh)
 {
-    Mat feature_mat = charFeaturesForANNTrain(cchar.getMat(),kANNCharDataSize);
-    Mat result_mat(1,kCharsTotalNumber,CV_32FC1);
-    ann_ptr->predict(feature_mat,result_mat);
+    Mat feature_mat = charFeaturesForANNTrain(cchar.getMat(),kANNChineseDataSize);
+
+    Mat result_mat(1,kChineseNumber,CV_32FC1);
+    ann_chinese_ptr->predict(feature_mat,result_mat);
 
     float max_val = -2.f;
-    int result = kChineseNumber;
+    int result = 0;
 
-    for(int i = kChineseNumber; i < kCharsTotalNumber; i++)
+    for(int i = 0; i < kChineseNumber; i++)
     {
         float val = result_mat.at<float>(i);
         if(val > max_val)
@@ -125,8 +126,9 @@ bool CharIdentifier::isChinese(CChar &cchar,float thresh)
         }
     }
     cchar.setScore(max_val);
-    cchar.setLabel(string(kChars[result]));
-    if(thresh < max_val)
+    cchar.setLabel(string(kChars[result + kCharsTotalNumber - kChineseNumber]));
+   
+    if(max_val > thresh)
     {
         cchar.setIsChinese(true);
         return true;

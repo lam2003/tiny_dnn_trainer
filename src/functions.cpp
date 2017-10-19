@@ -532,7 +532,7 @@ void removeContainChar(vector<CChar> &cchar_vec,float thresh)
 
         for(;itn != cchar_vec.end();)
         {
-            CChar cchar2 = *it;
+            CChar cchar2 = *itn;
             Rect cchar_rect2 = cchar2.getRect();
 
             Rect and_rect = cchar_rect1 & cchar_rect2;
@@ -546,6 +546,7 @@ void removeContainChar(vector<CChar> &cchar_vec,float thresh)
                 itn++;
         }
     }
+    sort(cchar_vec.begin(),cchar_vec.end(),compareCCharByRectTlX);
 }
 
 void axesSearch(const Vec4f &line_vec4f,
@@ -720,13 +721,12 @@ void slideWindowSearch(const Mat &in,
         Point slide_point(temp_x,temp_y);
 
         
-
         int chinese_height = 1.05 * max_cchar_rect.height;
         int chinese_width = 1.05 * max_cchar_rect.width;
 
         Rect rect(Point2f(temp_x - chinese_width / 2,temp_y - chinese_height / 2),
                   Point2f(temp_x + chinese_width / 2,temp_y + chinese_height / 2));
-    
+        
         if(rect.tl().x < 0 || rect.tl().y < 0 || rect.br().x > in.cols || rect.br().y > in.rows)
             continue;
          
@@ -744,7 +744,6 @@ void slideWindowSearch(const Mat &in,
 
     if(is_chinese)
         CharIdentifier::getInstance()->classifyChinese(slide_cchar_vec);
-
     else
         CharIdentifier::getInstance()->classify(slide_cchar_vec);
      

@@ -120,7 +120,7 @@ void Locater::mserCharLocated()
            
             removeRightOutliers(cchar_group_vec.at(i),rmo_cchar_group,0.2f,0.5f); //sort by centerx
            
-           // removeContainChar(rmo_cchar_group,0.1f); //sort by tlx
+            removeContainChar(rmo_cchar_group,0.1f); //sort by tlx
            
             
             vector<Point> cchar_center_point_vec;
@@ -233,7 +233,7 @@ void Locater::mserCharLocated()
            
             vector<CChar> slide_cchar_vec;
             slide_cchar_vec.reserve(128);
-
+           
             if(mser_cchar_vec.size() < kPlateMaxCharNum)
             {
                 sort(mser_cchar_vec.begin(),mser_cchar_vec.end(),compareCCharByRectTlX);
@@ -247,50 +247,52 @@ void Locater::mserCharLocated()
                 cchar_binary_mat = preprocessChar(cchar_binary_mat,kCharSize);
                 cchar.setMat(cchar_binary_mat);
      
-                bool is_chinese = CharIdentifier::getInstance()->isChinese(cchar,0.2f);
-           
+                bool is_chinese = CharIdentifier::getInstance()->isChinese(cchar,0.9f);
+               
                 if(!is_chinese)
                 {
+                   
                     slideWindowSearch(scale_gray_mat, line_vec4f, left_point, right_point,max_cchar_rect, cplate_rect,slide_cchar_vec,otsu_level, 0.4, 0.8,true,LEFT);
                     for(int j = 0;j < slide_cchar_vec.size();j++)
                         mser_cchar_vec.push_back(slide_cchar_vec[j]);
                 }
-             
+          
                 if(mser_cchar_vec.size() < kPlateMaxCharNum)
                 {
                     slideWindowSearch(scale_gray_mat, line_vec4f, left_point, right_point,max_cchar_rect, cplate_rect,slide_cchar_vec,otsu_level, 0.4, 0.8,false,RIGHT);
                     for(int j = 0;j < slide_cchar_vec.size();j++)
                         mser_cchar_vec.push_back(slide_cchar_vec[j]);
                 }
+              
                 
             }
           
-          
+  
 
             cplate.setRect(cplate_rect);
             cplate.setLeftPoint(left_point);
             cplate.setRightPoint(right_point);
 
             if (display_process)
-                rectangle(scale_rgb_mat,cplate_rect, Scalar(255, 255, 255), 2); // white
+                rectangle(scale_rgb_mat,cplate_rect, Scalar(255, 0, 255), 2); // white
             
             for(int j = 0; j < left_axes_cchar_vec.size(); j++)
             {
                 cplate.addMserCChar(left_axes_cchar_vec[j]);
                 if (display_process)
-                    rectangle(scale_rgb_mat, left_axes_cchar_vec[j].getRect(), Scalar(64, 128, 255), 1);
+                    rectangle(scale_rgb_mat, left_axes_cchar_vec[j].getRect(), Scalar(255, 255, 255), 1);
             }
             for(int j = 0; j < right_axes_cchar_vec.size(); j++)
             {
                 cplate.addMserCChar(right_axes_cchar_vec[j]);
                 if (display_process)
-                    rectangle(scale_rgb_mat, right_axes_cchar_vec[j].getRect(), Scalar(255, 128, 64), 1);
+                    rectangle(scale_rgb_mat, right_axes_cchar_vec[j].getRect(), Scalar(0, 0, 0), 1);
             }
             for(int j = 0;j < slide_cchar_vec.size();j++)
             {
                 cplate.addMserCChar(slide_cchar_vec[j]);
                 if (display_process)
-                    rectangle(scale_rgb_mat, slide_cchar_vec[j].getRect(), Scalar(0, 0, 255), 1); //black
+                    rectangle(scale_rgb_mat, slide_cchar_vec[j].getRect(), Scalar(0, 0, 255), 1);
                 
             }
            
