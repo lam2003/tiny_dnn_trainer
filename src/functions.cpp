@@ -233,10 +233,10 @@ Mat scaleImage(const Mat &in, const Size &size)
         float scale_ratio = width_ratio > height_ratio ? width_ratio : height_ratio;
         int new_width = in.cols / scale_ratio;
         int new_height = in.rows / scale_ratio;
-        resize(in, out, Size(new_width, new_height), 0, 0);
+        resize(in, out, Size(new_width, new_height));
     }
     else
-        out = in;
+        out = in.clone();
 
     return out;
 }
@@ -465,16 +465,16 @@ void removeRightOutliers(vector<CChar> &cchar_vec,vector<CChar> &out_cchar_vec,f
     sort(cchar_vec.begin(),cchar_vec.end(),compareCCharByCenterX);
     
     vector<float> slope_vec;
-
+   
     for(int i = 0; i + 1 < cchar_vec.size(); i++)
     {
         Vec4f line_vec4f;
-        CChar left_cchar = cchar_vec.at(i);
-        CChar right_cchar = cchar_vec.at(i + 1);
+        CChar cchar1 = cchar_vec.at(i);
+        CChar cchar2 = cchar_vec.at(i + 1);
 
         vector<Point> point_vec;
-        point_vec.push_back(left_cchar.getCenterPoint());
-        point_vec.push_back(right_cchar.getCenterPoint());
+        point_vec.push_back(cchar1.getCenterPoint());
+        point_vec.push_back(cchar2.getCenterPoint());
 
         fitLine(Mat(point_vec),line_vec4f,CV_DIST_L2,0,0.01,0.01);
         
@@ -561,7 +561,7 @@ void axesSearch(const Vec4f &line_vec4f,
 {
 
     vector<CChar> axes_cchar_vec;
-    axes_cchar_vec.reserve(128);
+    axes_cchar_vec.reserve(16);
 
     float k = line_vec4f[1] / line_vec4f[0];
     float x = line_vec4f[2];
@@ -702,6 +702,7 @@ void slideWindowSearch(const Mat &in,
     }
 
     vector<CChar> slide_cchar_vec;
+    slide_cchar_vec.reserve(16);
 
     for(int slide_x = -slide_length; slide_x < slide_length; slide_x += slide_step)
     {
@@ -777,6 +778,8 @@ void combineRect(const Mat &in, vector<CChar> &cchar_vec,vector<CChar> &out_ccha
     int avg_dist = dest_vec2i[0] * dest_vec2i[0] + dest_vec2i[1] * dest_vec2i[1];
 
     vector<CChar> combine_cchar_vec;
+    combine_cchar_vec.reserve(16);
+
     int i = 0;
     for (;i + 1 < cchar_vec.size(); i++)
     {
@@ -828,9 +831,8 @@ void combineRect(const Mat &in, vector<CChar> &cchar_vec,vector<CChar> &out_ccha
     }
 
     if (i + 1 == cchar_vec.size())
-    {
         combine_cchar_vec.push_back(cchar_vec.at(i));
-    }
+    
 
     out_cchar_vec = combine_cchar_vec;
 }
