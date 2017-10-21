@@ -1,0 +1,185 @@
+Determining if the CL_VERSION_2_0 exist failed with the following output:
+Change Dir: /tiny_cnn/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec2350497621/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec2350497621.dir/build.make CMakeFiles/cmTryCompileExec2350497621.dir/build
+make[1]: Entering directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /tiny_cnn/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec2350497621.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec2350497621.dir/CheckSymbolExists.c.o   -c /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:47: fatal error: OpenCL_INCLUDE_DIR-NOTFOUND/CL/cl.h: 没有那个文件或目录
+compilation terminated.
+CMakeFiles/cmTryCompileExec2350497621.dir/build.make:57: recipe for target 'CMakeFiles/cmTryCompileExec2350497621.dir/CheckSymbolExists.c.o' failed
+make[1]: Leaving directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+make[1]: *** [CMakeFiles/cmTryCompileExec2350497621.dir/CheckSymbolExists.c.o] Error 1
+Makefile:117: recipe for target 'cmTryCompileExec2350497621/fast' failed
+make: *** [cmTryCompileExec2350497621/fast] Error 2
+
+File /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <OpenCL_INCLUDE_DIR-NOTFOUND/CL/cl.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef CL_VERSION_2_0
+  return ((int*)(&CL_VERSION_2_0))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the CL_VERSION_1_2 exist failed with the following output:
+Change Dir: /tiny_cnn/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec1807127724/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec1807127724.dir/build.make CMakeFiles/cmTryCompileExec1807127724.dir/build
+make[1]: Entering directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /tiny_cnn/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec1807127724.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec1807127724.dir/CheckSymbolExists.c.o   -c /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:47: fatal error: OpenCL_INCLUDE_DIR-NOTFOUND/CL/cl.h: 没有那个文件或目录
+compilation terminated.
+CMakeFiles/cmTryCompileExec1807127724.dir/build.make:57: recipe for target 'CMakeFiles/cmTryCompileExec1807127724.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTryCompileExec1807127724.dir/CheckSymbolExists.c.o] Error 1
+make[1]: Leaving directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+Makefile:117: recipe for target 'cmTryCompileExec1807127724/fast' failed
+make: *** [cmTryCompileExec1807127724/fast] Error 2
+
+File /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <OpenCL_INCLUDE_DIR-NOTFOUND/CL/cl.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef CL_VERSION_1_2
+  return ((int*)(&CL_VERSION_1_2))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the CL_VERSION_1_1 exist failed with the following output:
+Change Dir: /tiny_cnn/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec2741185221/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec2741185221.dir/build.make CMakeFiles/cmTryCompileExec2741185221.dir/build
+make[1]: Entering directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /tiny_cnn/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec2741185221.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec2741185221.dir/CheckSymbolExists.c.o   -c /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:47: fatal error: OpenCL_INCLUDE_DIR-NOTFOUND/CL/cl.h: 没有那个文件或目录
+compilation terminated.
+CMakeFiles/cmTryCompileExec2741185221.dir/build.make:57: recipe for target 'CMakeFiles/cmTryCompileExec2741185221.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTryCompileExec2741185221.dir/CheckSymbolExists.c.o] Error 1
+make[1]: Leaving directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+Makefile:117: recipe for target 'cmTryCompileExec2741185221/fast' failed
+make: *** [cmTryCompileExec2741185221/fast] Error 2
+
+File /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <OpenCL_INCLUDE_DIR-NOTFOUND/CL/cl.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef CL_VERSION_1_1
+  return ((int*)(&CL_VERSION_1_1))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the CL_VERSION_1_0 exist failed with the following output:
+Change Dir: /tiny_cnn/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec4243284159/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec4243284159.dir/build.make CMakeFiles/cmTryCompileExec4243284159.dir/build
+make[1]: Entering directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /tiny_cnn/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec4243284159.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec4243284159.dir/CheckSymbolExists.c.o   -c /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:47: fatal error: OpenCL_INCLUDE_DIR-NOTFOUND/CL/cl.h: 没有那个文件或目录
+compilation terminated.
+CMakeFiles/cmTryCompileExec4243284159.dir/build.make:57: recipe for target 'CMakeFiles/cmTryCompileExec4243284159.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTryCompileExec4243284159.dir/CheckSymbolExists.c.o] Error 1
+make[1]: Leaving directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+Makefile:117: recipe for target 'cmTryCompileExec4243284159/fast' failed
+make: *** [cmTryCompileExec4243284159/fast] Error 2
+
+File /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <OpenCL_INCLUDE_DIR-NOTFOUND/CL/cl.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef CL_VERSION_1_0
+  return ((int*)(&CL_VERSION_1_0))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /tiny_cnn/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec1775605489/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec1775605489.dir/build.make CMakeFiles/cmTryCompileExec1775605489.dir/build
+make[1]: Entering directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /tiny_cnn/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec1775605489.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec1775605489.dir/CheckSymbolExists.c.o   -c /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTryCompileExec1775605489
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1775605489.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTryCompileExec1775605489.dir/CheckSymbolExists.c.o  -o cmTryCompileExec1775605489 -rdynamic 
+CMakeFiles/cmTryCompileExec1775605489.dir/CheckSymbolExists.c.o：在函数‘main’中：
+CheckSymbolExists.c:(.text+0x16)：对‘pthread_create’未定义的引用
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTryCompileExec1775605489.dir/build.make:88: recipe for target 'cmTryCompileExec1775605489' failed
+make[1]: Leaving directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+make[1]: *** [cmTryCompileExec1775605489] Error 1
+Makefile:117: recipe for target 'cmTryCompileExec1775605489/fast' failed
+make: *** [cmTryCompileExec1775605489/fast] Error 2
+
+File /tiny_cnn/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /tiny_cnn/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec919290582/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec919290582.dir/build.make CMakeFiles/cmTryCompileExec919290582.dir/build
+make[1]: Entering directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /tiny_cnn/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec919290582.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTryCompileExec919290582.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.2/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec919290582
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec919290582.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTryCompileExec919290582.dir/CheckFunctionExists.c.o  -o cmTryCompileExec919290582 -rdynamic -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTryCompileExec919290582.dir/build.make:88: recipe for target 'cmTryCompileExec919290582' failed
+make[1]: *** [cmTryCompileExec919290582] Error 1
+make[1]: Leaving directory '/tiny_cnn/CMakeFiles/CMakeTmp'
+Makefile:117: recipe for target 'cmTryCompileExec919290582/fast' failed
+make: *** [cmTryCompileExec919290582/fast] Error 2
+
+

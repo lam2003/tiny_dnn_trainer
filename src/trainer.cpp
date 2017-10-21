@@ -1,515 +1,176 @@
-#include "trainer.h"
 
-Trainer::Trainer() {}
-Trainer::~Trainer(){};
 
-ANNTrainer::ANNTrainer(const char *sample_path, const char *xml_path, int type)
+ #include "trainer.h"
+
+ CNNTrainer::CNNTrainer()
+ {
+    
+#define O true
+#define X false
+    static const bool tbl[] = {
+         O, X, X, X, O, O, O, X, X, O, O, O, O, X, O, O,
+         O, O, X, X, X, O, O, O, X, X, O, O, O, O, X, O,
+         O, O, O, X, X, X, O, O, O, X, X, O, X, O, O, O,
+         X, O, O, O, X, X, O, O, O, O, X, X, O, X, O, O,
+         X, X, O, O, O, X, X, O, O, O, O, X, O, O, X, O,
+         X, X, X, O, O, O, X, X, O, O, O, O, X, O, O, O
+    };
+#undef O
+#undef X
+    using conv     = tiny_dnn::layers::conv;
+    using ave_pool = tiny_dnn::layers::ave_pool;
+    using fc       = tiny_dnn::layers::fc;
+    using tanh     = tiny_dnn::activation::tanh;
+    using tiny_dnn::core::connection_table;
+    
+     net << conv(32, 32, 5, 1, 6) // C1,32x32 in,1 input,6 output
+         << tanh(28, 28, 6)
+         << ave_pool(28, 28, 6, 2) // S2,24x24 in,2x2 kernel,6 input
+         << tanh(14, 14, 6)
+         << conv(14, 14, 5, 6, 16,connection_table(tbl, 6, 16)) //C3,12x12 in,5x5 kernel,6 input,6 output
+         << tanh(10, 10, 16)
+         << ave_pool(10, 10, 16, 2) //S4,8x8 in,2x2 kernel,16 input
+         << tanh(5, 5, 16)
+         << conv(5, 5, 5, 16, 120) //C5 4x4 in,4x4 kernel, 16 input,120 output;
+         << tanh(1, 1, 120)
+         << fc(120, 65)
+         << tanh(65);
+
+ }
+
+ Mat CNNTrainer::getSyntheticMat(const Mat &in)
+ {
+     srand(unsigned(time(NULL)));
+     int rand_type = rand();
+     Mat out;
+     float rand_num = -3.5f;
+     float rand_array[70];
+     for (int i = 0; i < 70; i++)
+     {
+         rand_array[i] = rand_num;
+         rand_num += 0.1f;
+     }
+ 
+     if (rand_type % 2 == 0)
+     {
+         float rand_x = rand_array[rand() % 20 + 25];
+         float rand_y = rand_array[rand() % 20 + 25];
+         out = getTranslatedMat(in, rand_x, rand_y);
+     }
+     else if (rand_type % 2 != 0)
+     {
+         float angle = rand_array[rand() % 70];
+         out = getRotatedMat(in, angle);
+     }
+     return out;
+ }
+
+void CNNTrainer::preprocessTrainData()
 {
-    this->sample_path = sample_path;
-    this->xml_path = xml_path;
-    ann_ptr = ANN_MLP::create();
-    this->type = type;
-}
 
-ANNTrainer::~ANNTrainer() {}
-
-Mat ANNTrainer::getSyntheticMat(const Mat &in)
-{
-    srand(unsigned(time(NULL)));
-    int rand_type = rand();
-    Mat out;
-    float rand_num = -3.5f;
-    float rand_array[70];
-    for (int i = 0; i < 70; i++)
+    for(int i = 0; i < kCharsTotalNumber; i++)
     {
-        rand_array[i] = rand_num;
-        rand_num += 0.1f;
-    }
+        const char *sample_name = kChars[i];
+        char char_folder_path[512];
+        sprintf(char_folder_path,"%s/%s",kCNNSamplePath,sample_name);
+        fprintf(stdout,"%s/%s\n",kCNNSamplePath,sample_name);
 
-    if (rand_type % 2 == 0)
-    {
-        float rand_x = rand_array[rand() % 20 + 25];
-        float rand_y = rand_array[rand() % 20 + 25];
-        out = getTranslatedMat(in, rand_x, rand_y);
-    }
-    else if (rand_type % 2 != 0)
-    {
-        float angle = rand_array[rand() % 70];
-        out = getRotatedMat(in, angle);
-    }
-    return out;
-}
+        vector<string> file_paths;
+        lsDir(string(char_folder_path),file_paths);
 
-Ptr<TrainData> ANNTrainer::preprocessTrainData(int min_input_num)
-{
+        vector<Mat> sample_mat_vec;
 
-    Mat sample_mat;
-    vector<int> label_vec;
-
-    int class_num;
-    srand(unsigned(time(NULL)));
-
-    if (type == 0)
-    {
-        class_num = kCharsTotalNumber;
-    }
-    else if (type == 1)
-    {
-        class_num = kChineseNumber;
-    }
-
-    for (int i = 0; i < class_num; i++)
-    {
-        const char *dir_name = kChars[kCharsTotalNumber - class_num + i];
-        string dir_path;
-        dir_path.append(sample_path);
-        dir_path.push_back('/');
-        dir_path.append(dir_name);
-        vector<string> file_path_vec;
-        lsDir(dir_path, file_path_vec);
-
-        int input_num = file_path_vec.size();
-
-        vector<Mat> input_mat_vec;
-        input_mat_vec.reserve(min_input_num);
-
-        fprintf(stdout, "----------------------------------------\n");
-        fprintf(stdout, "loading char:%s\n", dir_path.c_str());
-
-        for (int j = 0; j < file_path_vec.size(); j++)
+        for(int j = 0; j < file_paths.size(); j++)
         {
-            Mat input_mat = imread(file_path_vec[j].c_str(), CV_8UC1);
+            Mat sample_mat = imread(file_paths[j].c_str(),CV_8UC1);
+            if(sample_mat.empty())
+                continue;
+            sample_mat_vec.push_back(sample_mat);
+        }
+     
+        int image_num = sample_mat_vec.size();
+        srand(unsigned(time(NULL)));
 
-            input_mat_vec.push_back(input_mat);
+        for(int j = 0; j < kCNNMinTrainDataNum - image_num; j++)
+        {
+            
+            int rand_num = rand() % (j + image_num);
+
+            Mat synthetic_mat = getSyntheticMat(sample_mat_vec[rand_num]);
+            sample_mat_vec.push_back(synthetic_mat);
+
         }
 
-        for (int j = 0; j < min_input_num - input_num; j++)
+        for (int j = 0; j < sample_mat_vec.size(); j++)
         {
-            int rand_num = rand() % (input_num + j);
-            Mat input_mat = input_mat_vec.at(rand_num);
-            Mat synthetic_mat = getSyntheticMat(input_mat);
-            char output_image_name[512] = {0};
-            sprintf(output_image_name, "./res/ANNTrainer/synthetic_mat/%s-%d-synthetic_mat.jpg", dir_name, j);
-            imwrite(output_image_name, synthetic_mat);
-
-            input_mat_vec.push_back(synthetic_mat);
-        }
-
-        fprintf(stdout, "image count:%d\n", input_mat_vec.size());
-
-        for (int j = 0; j < input_mat_vec.size(); j++)
-        {
-            Mat input_mat = input_mat_vec.at(j);
-            Mat feature_mat;
-            if (type == 0)
+          
+            charFeatureForCNN(sample_mat_vec[j],32,-1.0,1.0,train_images);
+            train_labels.push_back(i);
+            if((j + 1) % 3 == 0)
             {
-                feature_mat = charFeaturesForANNTrain(input_mat, kANNCharDataSize);
+                charFeatureForCNN(sample_mat_vec[j],32,-1.0,1.0,test_images);
+                test_labels.push_back(i);
             }
-            else if (type == 1)
-            {
-                feature_mat = charFeaturesForANNTrain(input_mat, kANNChineseDataSize);
-            }
-            sample_mat.push_back(feature_mat);
-            label_vec.push_back(i);
+           
         }
     }
 
-    sample_mat.convertTo(sample_mat, CV_32F);
-    Mat class_mat = Mat::zeros(label_vec.size(), class_num, CV_32F);
-    for (int i = 0; i < class_mat.rows; i++)
-    {
-        class_mat.at<float>(i, label_vec[i]) = 1.f;
-    }
-    fprintf(stdout, "----------------------------------------\n");
-    return TrainData::create(sample_mat, ROW_SAMPLE, class_mat);
 }
 
-void ANNTrainer::train()
-{
-    int input_num = 0;
-    int hidden_num = 0;
-    int output_num = 0;
+ void CNNTrainer::train()
+ {
+    
+    cout << "start training" << endl;
+    progress_display disp(static_cast<unsigned long>(train_images.size()));
+    timer t;
+    int minibatch_size = 100;
+    int num_epochs = 50;
 
-    if (type == 0)
+    //optimizer.alpha *= static_cast<float_t>(sqrt(minibatch_size));
+
+    auto on_enumerate_epoch = [&](){
+        cout << t.elapsed() << "s elapsed." << endl;
+        result res = net.test(test_images, test_labels);
+        cout << res.num_success << "/" << res.num_total << endl;
+
+        disp.restart(static_cast<unsigned long>(train_images.size()));
+        t.restart();
+    };
+
+    auto on_enumerate_minibatch = [&](){
+        disp += minibatch_size;
+    };
+
+    net.train<mse>(optimizer, train_images, train_labels, minibatch_size, num_epochs,
+        on_enumerate_minibatch, on_enumerate_epoch);
+
+    cout << "end training." << endl;
+
+    net.test(test_images, test_labels).print_detail(cout);
+    net.save(kCNNModelPath);
+ }
+
+ void CNNTrainer::recognize(const Mat &in) {
+   
+    net.load(kCNNModelPath);
+
+    vector<vec_t> data_vec;
+    
+    charFeatureForCNN(in,32,-1,1,data_vec);
+    
+    for(int j = 0; j < data_vec.size(); j++)
     {
-        output_num = kCharsTotalNumber;
-        input_num = kANNCharInputNum;
+        vec_t data = data_vec[j];
+        auto res = net.predict(data);
+        vector<pair<double, int> > scores;
+
+    
+        for (int i = 0; i < 65; i++)
+            scores.emplace_back(res[i], i);
+
+        sort(scores.begin(), scores.end(), greater<pair<double, int>>());
+
+        for (int i = 0; i < 1; i++)
+            cout << kChars[scores[i].second] << "," << scores[i].first << endl;
     }
-    else if (type == 1)
-    {
-        output_num = kChineseNumber;
-        input_num = kANNChineseInputNum;
-    }
-
-    hidden_num = kANNHiddenNum;
-
-    Mat layers(1, 3, CV_32SC1);
-    layers.at<int>(0) = input_num;
-    layers.at<int>(1) = hidden_num;
-    layers.at<int>(2) = output_num;
-
-    ann_ptr->setLayerSizes(layers);
-    ann_ptr->setActivationFunction(ANN_MLP::SIGMOID_SYM, 1, 1);
-    ann_ptr->setTrainMethod(ANN_MLP::BACKPROP);
-    if (type == 0)
-    {
-        ann_ptr->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER + TermCriteria::EPS, 1000, 0.0001));
-    }
-    else if (type == 1)
-    {
-        ann_ptr->setTermCriteria(cvTermCriteria(CV_TERMCRIT_ITER, 30000, 0.0001));
-    }
-    ann_ptr->setBackpropWeightScale(0.1);
-    ann_ptr->setBackpropMomentumScale(0.1);
-
-    Ptr<TrainData> train_data_ptr = preprocessTrainData(kANNMinTrainDataNum);
-
-    fprintf(stdout, "++++++++++++++++++++++++++++++++++++++++\n");
-    fprintf(stdout, "ANNTrainer begin to train,please wait...\n");
-    ann_ptr->train(train_data_ptr);
-    fprintf(stdout, "saving train result\n");
-    fprintf(stdout, "++++++++++++++++++++++++++++++++++++++++\n");
-    ann_ptr->save(xml_path);
-}
-
-int ANNTrainer::identity(const Mat &in)
-{
-    Mat feature_mat = charFeaturesForANNTrain(in, kANNCharDataSize);
-    float max_val = -2.f;
-    int result = 0;
-
-    Mat result_mat(1, kCharsTotalNumber, CV_32FC1);
-    ann_ptr->predict(feature_mat, result_mat);
-
-    for (int i = 0; i < kCharsTotalNumber; i++)
-    {
-        float val = result_mat.at<float>(i);
-        if (val > max_val)
-        {
-            max_val = val;
-            result = i;
-        }
-    }
-    return result;
-}
-
-int ANNTrainer::identityChinese(const Mat &in)
-{
-    Mat feature_mat = charFeaturesForANNTrain(in, kANNChineseDataSize);
-    float max_val = -2.f;
-    int result = 0;
-
-    Mat result_mat(1, kChineseNumber, CV_32FC1);
-    ann_ptr->predict(feature_mat, result_mat);
-
-    for (int i = 0; i < kChineseNumber; i++)
-    {
-        float val = result_mat.at<float>(i);
-        if (val > max_val)
-        {
-            max_val = val;
-            result = i;
-        }
-    }
-    return result;
-}
-
-void ANNTrainer::test()
-{
-    int class_num;
-    srand(unsigned(time(NULL)));
-    int correct_sum = 0;
-    int total_sum = 0;
-
-    if (type == 0)
-    {
-        class_num = kCharsTotalNumber;
-    }
-    else if (type == 1)
-    {
-        class_num = kChineseNumber;
-    }
-
-    printf("-------------------------------------------------------\n");
-    printf("ANNTrainer testing.....\n");
-    for (int i = 0; i < class_num; i++)
-    {
-        const char *dir_name = kChars[kCharsTotalNumber - class_num + i];
-        string dir_path;
-        dir_path.append(sample_path);
-        dir_path.push_back('/');
-        dir_path.append(dir_name);
-        vector<string> file_path_vec;
-        lsDir(dir_path, file_path_vec);
-
-        int correct = 0, total = 0;
-
-        for (int j = 0; j < file_path_vec.size(); j++)
-        {
-            Mat input_mat = imread(file_path_vec[j], CV_8UC1);
-            int result = -1;
-
-            if (type == 0)
-            {
-                result = identity(input_mat);
-            }
-            else if (type == 1)
-            {
-                result = identityChinese(input_mat);
-            }
-
-            if (result == i)
-            {
-                correct++;
-                correct_sum++;
-            }
-            else
-            {
-                printf("[%d][%d]", i, result);
-                if (type == 1)
-                {
-                    result += kCharsNumber;
-                }
-                printf("[error]:correct result:%s\t result:%s\n", dir_name, kChars[result]);
-            }
-            total++;
-            total_sum++;
-        }
-        total == 0 ? 1 : total;
-        float rate = float(correct) / total;
-        printf("[%s]total:%d\tcorrect:%d\trate:%.2f\n", dir_name, total, correct, rate);
-        printf("-------------------------------------------------------\n");
-    }
-
-    total_sum == 0 ? 1 : total_sum;
-    float rate_sum = float(correct_sum) / total_sum;
-    printf("total_sum:%d\tcorrect_sum:%d\trate_sum:%.2f\n", total_sum, correct_sum, rate_sum);
-    printf("-------------------------------------------------------\n");
-}
-
-ANNChGrayTrainer::ANNChGrayTrainer(const char *sample_path, const char *xml_path)
-{
-    this->sample_path = sample_path;
-    this->xml_path = xml_path;
-    ann_ptr = ANN_MLP::create();
-}
-
-ANNChGrayTrainer::~ANNChGrayTrainer() {}
-
-void ANNChGrayTrainer::train()
-{
-    int input_num = KANNChGrayInputNum;
-    int hidden_num = KANNChGrayHiddenNum;
-    int output_num = kChineseNumber;
-
-    Mat layers(1, 3, CV_32SC1);
-    layers.at<int>(0) = input_num;
-    layers.at<int>(1) = hidden_num;
-    layers.at<int>(2) = output_num;
-
-    ann_ptr->setLayerSizes(layers);
-    ann_ptr->setActivationFunction(ANN_MLP::SIGMOID_SYM, 1, 1);
-    ann_ptr->setTrainMethod(ANN_MLP::BACKPROP);
-    ann_ptr->setTermCriteria(cvTermCriteria(CV_TERMCRIT_ITER, 30000, 0.0001));
-    ann_ptr->setBackpropWeightScale(0.1);
-    ann_ptr->setBackpropMomentumScale(0.1);
-
-    Ptr<TrainData> train_data_ptr = preprocessTrainData(kANNChGrayMinTrainDataNum);
-    fprintf(stdout, "++++++++++++++++++++++++++++++++++++++++\n");
-    fprintf(stdout, "ANNChGrayTrainer begin to train,please wait...\n");
-    ann_ptr->train(train_data_ptr);
-    fprintf(stdout, "saving train result\n");
-    fprintf(stdout, "++++++++++++++++++++++++++++++++++++++++\n");
-    ann_ptr->save(xml_path);
-}
-
-int ANNChGrayTrainer::getBorderColor(const Mat &in)
-{
-    float sum = 0;
-    for (int i = 0; i < in.rows; i++)
-    {
-        sum += in.at<uchar>(i, 0);
-        sum += in.at<uchar>(i, in.cols - 1);
-    }
-    for (int i = 0; i < in.cols; i++)
-    {
-        sum += in.at<uchar>(0, i);
-        sum += in.at<uchar>(in.rows - 1, i);
-    }
-
-    float avg = sum / (in.cols + in.cols + in.rows + in.rows);
-    return avg;
-}
-
-Mat ANNChGrayTrainer::getSyntheticMat(const Mat &in)
-{
-    srand(unsigned(time(NULL)));
-    int rand_type = rand() % 3;
-    int border_color = getBorderColor(in);
-
-    Mat out;
-    float rand_num = -5.f;
-    float rand_array[100];
-    for (int i = 0; i < 100; i++)
-    {
-        rand_array[i] = rand_num;
-        rand_num += 0.1f;
-    }
-
-    if (rand_type == 0)
-    {
-        int shift = 2;
-        int x = rand() % shift;
-        int y = rand() % shift;
-        int width = in.cols - rand() % shift;
-        int height = in.rows - rand() % shift;
-        out = getCropMat(in, x, y, width, height);
-    }
-    else if (rand_type == 1)
-    {
-        int rand_x = rand_array[rand() % 20 + 40];
-        int rand_y = rand_array[rand() % 20 + 40];
-        out = getTranslatedMat(in, rand_x, rand_y, border_color);
-    }
-    else if (rand_type == 2)
-    {
-        int angle = rand_array[rand() % 100];
-        out = getRotatedMat(in, angle, border_color);
-    }
-
-    return out;
-}
-
-Ptr<TrainData> ANNChGrayTrainer::preprocessTrainData(int min_input_num)
-{
-    Mat sample_mat;
-    vector<int> label_vec;
-    srand(unsigned(time(NULL)));
-
-    for (int i = 0; i < kChineseNumber; i++)
-    {
-        const char *dir_name = kChars[kCharsTotalNumber - kChineseNumber + i];
-        string dir_path;
-        dir_path.append(sample_path);
-        dir_path.push_back('/');
-        dir_path.append(dir_name);
-        vector<string> file_path_vec;
-        lsDir(dir_path, file_path_vec);
-
-        int input_num = file_path_vec.size();
-        vector<Mat> input_mat_vec;
-        input_mat_vec.reserve(min_input_num);
-
-        fprintf(stdout, "----------------------------------------\n");
-        fprintf(stdout, "loading char:%s\n", dir_path.c_str());
-
-        for (int j = 0; j < file_path_vec.size(); j++)
-        {
-            Mat input_mat = imread(file_path_vec[j].c_str(), CV_8UC1);
-
-            input_mat_vec.push_back(input_mat);
-        }
-
-        for (int j = 0; j < min_input_num - input_num; j++)
-        {
-            int rand_num = rand() % (j + input_num);
-            Mat input_mat = input_mat_vec.at(rand_num);
-            resize(input_mat, input_mat, Size(KANNChGrayWidth,kANNChGrayHeight), 0, 0, INTER_LINEAR);
-            Mat synthetic_mat = getSyntheticMat(input_mat);
-
-            char output_image_name[512] = {0};
-            sprintf(output_image_name, "./res/ANNChGrayTrainer/synthetic_mat/%s-%d-synthetic_mat.jpg", dir_name, j);
-            imwrite(output_image_name, synthetic_mat);
-
-            input_mat_vec.push_back(synthetic_mat);
-        }
-
-        fprintf(stdout, "image count:%d\n", input_mat_vec.size());
-        for (int j = 0; j < input_mat_vec.size(); j++)
-        {
-            Mat feature_mat = charFeaturesForANNChGrayTrain(input_mat_vec.at(j));
-            label_vec.push_back(i);
-            sample_mat.push_back(feature_mat);
-        }
-    }
-    sample_mat.convertTo(sample_mat, CV_32F);
-    Mat class_mat = Mat::zeros(label_vec.size(), kChineseNumber, CV_32F);
-    for (int i = 0; i < class_mat.rows; i++)
-    {
-        class_mat.at<float>(i, label_vec[i]) = 1.f;
-    }
-    fprintf(stdout, "----------------------------------------\n");
-    return TrainData::create(sample_mat, ROW_SAMPLE, class_mat);
-}
-
-int ANNChGrayTrainer::identityChinese(const Mat &in)
-{
-    Mat feature_mat = charFeaturesForANNChGrayTrain(in);
-    float max_val = -2.f;
-    int result = 0;
-
-    Mat result_mat(1, kChineseNumber, CV_32FC1);
-    ann_ptr->predict(feature_mat, result_mat);
-
-    for (int i = 0; i < kChineseNumber; i++)
-    {
-        float val = result_mat.at<float>(i);
-        if (val > max_val)
-        {
-            max_val = val;
-            result = i;
-        }
-    }
-    return result;
-}
-
-void ANNChGrayTrainer::test()
-{
-    srand(unsigned(time(NULL)));
-    int correct_sum = 0;
-    int total_sum = 0;
-
-    printf("-------------------------------------------------------\n");
-    printf("ANNChGrayTrainer testing.....\n");
-    for (int i = 0; i < kChineseNumber; i++)
-    {
-        const char *dir_name = kChars[kCharsTotalNumber - kChineseNumber + i];
-        string dir_path;
-        dir_path.append(sample_path);
-        dir_path.push_back('/');
-        dir_path.append(dir_name);
-        vector<string> file_path_vec;
-        lsDir(dir_path, file_path_vec);
-
-        int correct = 0, total = 0;
-
-        for (int j = 0; j < file_path_vec.size(); j++)
-        {
-            Mat input_mat = imread(file_path_vec[j], CV_8UC1);
-            int result = identityChinese(input_mat);
-
-            if (result == i)
-            {
-                correct++;
-                correct_sum++;
-            }
-            else
-            {
-                printf("[%d][%d]", i, result);
-                result += kCharsNumber;
-                printf("[error]:correct result:%s\t result:%s\n", dir_name, kChars[result]);
-            }
-            total++;
-            total_sum++;
-        }
-        total == 0 ? 1 : total;
-        float rate = float(correct) / total;
-        printf("[%s]total:%d\tcorrect:%d\trate:%.2f\n", dir_name, total, correct, rate);
-        printf("-------------------------------------------------------\n");
-    }
-
-    total_sum == 0 ? 1 : total_sum;
-    float rate_sum = float(correct_sum) / total_sum;
-    printf("total_sum:%d\tcorrect_sum:%d\trate_sum:%.2f\n", total_sum, correct_sum, rate_sum);
-    printf("-------------------------------------------------------\n");
 }

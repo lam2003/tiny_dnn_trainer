@@ -3,59 +3,37 @@
 
 #include <opencv2/opencv.hpp>
 #include <vector>
-#include "functions.h"
+#include <string>
+#include "tiny_dnn/tiny_dnn.h"
+#include "feature.h"
 #include "utils.h"
 #include "global.h"
-#include "feature.h"
+#include "functions.h"
 
+using namespace tiny_dnn;
+using namespace tiny_dnn::activation;
+using namespace tiny_dnn::layers;
+using namespace tiny_dnn::core;
 using namespace std;
 using namespace cv;
-using namespace cv::ml;
 
-class Trainer
+
+
+class CNNTrainer
 {
 public:
-    Trainer();
-    virtual ~Trainer();
-    virtual void train() = 0;
-    virtual void test() = 0;
+    CNNTrainer();
+    void preprocessTrainData();
+    void train();
+    void recognize(const Mat &in);
 private:
-    virtual Ptr<TrainData> preprocessTrainData(int min_input_num) = 0;
-};
-
-class ANNTrainer : public Trainer
-{
-public:
-    explicit ANNTrainer(const char *sample_path,const char *xml_path,int type = 0);
-    virtual ~ANNTrainer();
-    virtual void train();
-    virtual void test();
-private:
-    int identity(const Mat &in);
-    int identityChinese(const Mat &in);
     Mat getSyntheticMat(const Mat &in);
-    virtual Ptr<TrainData> preprocessTrainData(int min_input_num);
-    Ptr<ANN_MLP> ann_ptr;
+    vector<label_t> train_labels,test_labels;
+    vector<vec_t> train_images,test_images;
+    network<sequential> net;
+    adagrad optimizer;
     const char *sample_path;
-    const char *xml_path;
-    int type;
-};
+    const char *model_path;
 
-class ANNChGrayTrainer : public Trainer
-{
-public:
-    explicit ANNChGrayTrainer(const char *sample_path,const char *xml_path);
-    virtual ~ANNChGrayTrainer();
-    virtual void train();
-    virtual void test();
-private:
-    int getBorderColor(const Mat &in);
-    Mat getSyntheticMat(const Mat &in);
-    int identityChinese(const Mat &in);
-    virtual Ptr<TrainData> preprocessTrainData(int min_input_num);
-    Ptr<ANN_MLP> ann_ptr;
-    const char *sample_path;
-    const char *xml_path;
 };
-
-#endif 
+#endif  

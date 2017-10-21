@@ -1,0 +1,1 @@
+/usr/bin/c++    -pthread  -msse3 -mavx -Wall -Wpedantic -Wno-narrowing -Wno-deprecated  -msse3 -mavx -Wall -Wpedantic -Wno-narrowing -Wno-deprecated -O3 -DNDEBUG  -O3   CMakeFiles/example_deconv_visual.dir/deconv/visual.cpp.o  -o example_deconv_visual -rdynamic 

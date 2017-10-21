@@ -1,8 +1,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-enum Color{BLUE,YELLOW,WHITE,UNKNOWN};
-
 static const char *kChars[] = 
 {
     "0", "1", "2",
@@ -36,28 +34,10 @@ static const char *kChars[] =
 const int kCharsNumber = 34;
 const int kChineseNumber = 31;
 const int kCharsTotalNumber = 65;
+const int kCNNMinTrainDataNum = 350;
+static const char *kCNNModelPath = "./model/LeNet-model";
+static const char *kCNNSamplePath = "./res/sample_mat";
 
 
-static const char *kANNModelPath = "./model/ann.xml";
-static const char *kANNModelChinesePath = "./model/ann_chinese.xml";
-static const char *kANNModelChineseGrayPath = "./model/ann_chinese_gray.xml";
-
-const int kCharSize = 20;
-const int kPlateMaxCharNum = 7;
-
-const int kANNCharDataSize = 10;
-const int kANNChineseDataSize = 20;
-const int kANNHiddenNum = 40;
-const int kANNCharInputNum = 120;
-const int kANNChineseInputNum = 440;
-
-const int kANNMinTrainDataNum = 1000;
-const int kANNChGrayMinTrainDataNum = 1000;
-
-const int kANNChGrayHeight = 20;
-const int KANNChGrayWidth = 32;
-const int KANNChGrayInputNum = KANNChGrayWidth * kANNChGrayHeight + 64;
-const int KANNChGrayHiddenNum = 64;
-const int kANNChGrayDataSize = 32;
 
 #endif 

@@ -1,0 +1,1 @@
+/usr/bin/c++    -pthread  -msse3 -mavx -Wall -Wpedantic -Wno-narrowing -Wno-deprecated  -msse3 -mavx -Wall -Wpedantic -Wno-narrowing -Wno-deprecated -O3 -DNDEBUG  -O3   CMakeFiles/example_mnist_test_unity.dir/cotire/example_mnist_test_CXX_unity.cxx.o  -o example_mnist_test -rdynamic 
